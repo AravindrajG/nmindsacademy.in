@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel</title>
+  <link rel="stylesheet" href="./src/css/index.css" />
+  <link href="https://unpkg.com/lucide-icons" rel="stylesheet" />
+  <link href="../assets/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/font-awesome.css">
+</head>
+<style>
+  .header-right .icon-items i {
+width: 30px;
+height: 30px;
+line-height: 30px;
+text-align: center;
+border-radius: 50%;
+background-color: #C3F499;
+font-size: 14px;
+}
+</style>
+<body>
+  <!-- Dashboard -->
+  <div class="dashboard">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header text-center">
+
+        <img src="../assets/img/logo/Nminds Academy Logo-R.jpeg" width="120" height="90" class="rounded" />
+
+      </div>
+      <nav class="sidebar-nav">
+        <a href="adminDash.html" class="nav-item active">
+          <i class="fas fa-home"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="adminCourse.html" class="nav-item">
+          <i class="fas fa-book"></i>
+          <span>Add Courses</span>
+        </a>
+        <a href="addAdmin.html" class="nav-item">
+          <i class="fas fa-user-plus"></i>
+          <span>Add Admin</span>
+        </a>
+        <a href="addCourseType.html" class="nav-item">
+          <i class="fas fa-layer-group"></i>
+          <span>Course Type</span>
+        </a>
+        <a href="adminEvent.html" class="nav-item">
+          <i class="fas fa-calendar-alt"></i>
+          <span>Events</span>
+        </a>
+        <a href="addBlogCategory.html" class="nav-item">
+          <i class="fas fa-list-alt"></i>
+          <span>Blog Category</span>
+        </a>
+        <a href="adminBlog.html" class="nav-item">
+          <i class="fas fa-blog"></i>
+          <span>Blog</span>
+        </a>
+        </a>
+        <a href="adminProject.html" class="nav-item">
+          <i class="fas fa-tasks"></i>
+          <span>Project</span>
+        </a>
+        <a href="#" class="nav-item logout" id="logout-btn">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>Logout</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Top Bar -->
+      <header class="topbar">
+        <div class="welcome">
+          <h2>Dashboard</h2>
+          <p> </p>
+        </div>
+
+        <div class="topbar-actions">
+          <button class="icon-btn">
+            <i class="icon-bell"></i>
+          </button>
+          <button class="icon-btn">
+            <i class="icon-settings"></i>
+          </button>
+          <div class="header-right d-flex justify-content-end align-items-center">
+            <div class="icon-items d-flex align-items-center gap-2">
+              <i class="fas fa-user"></i>
+              <h6 class="User mb-0">
+                <a href="javascript:void(0);" id="user-role" class="text-decoration-none">Login</a>
+              </h6>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Dashboard Content -->
+      <div class="dashboard-content">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h3>Total Courses</h3>
+            <p class="stat-value" id="totalCourse">0</p>
+          </div>
+          <div class="stat-card">
+            <h3>Active Admins</h3>
+            <p class="stat-value" id="totalAdmins">0</p>
+          </div>
+          <div class="stat-card">
+            <h3>Total Students</h3>
+            <p class="stat-value" id="totalStudents">0</p>
+          </div>
+        </div>
+
+        <!-- Gallery Creation Modal -->
+        <!-- <div class="modal fade" id="galleryModal" tabindex="-1" aria-labelledby="galleryModalLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="galleryModalLabel">Create New Gallery</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <form id="gallery-form" enctype="multipart/form-data">
+                  <div class="mb-3">
+                    <label for="title" class="form-label">Gallery Title:</label>
+                    <input type="text" name="title" id="title" class="form-control" required>
+                  </div>
+                  <div class="mb-3">
+                    <label for="description" class="form-label">Gallery Description:</label>
+                    <input type="text" name="description" id="description" class="form-control" required>
+                  </div>
+                  <div class="mb-3">
+                    <label for="images" class="form-label">Select Images:</label>
+                    <input type="file" name="images" id="images" class="form-control" accept="image/*" multiple
+                      required>
+                  </div>
+                </form>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="submit" form="gallery-form" class="btn btn-primary">Create Gallery</button>
+              </div>
+            </div>
+          </div>
+        </div> -->
+
+        <!-- Button to Open Modal -->
+        <!-- <button type="button" class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#galleryModal">
+          Create New Gallery
+        </button> -->
+        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+          <h4>Students</h4>
+          <table class="table table-striped border">
+            <thead class="thead-light sticky-top">
+              <th>S.No</th>
+              <th>First Name</th>
+              <th>Last Name</th>
+              <th>Email</th>
+              <th>Created At</th>
+              <tbody id="student-table">
+            </thead>
+            </tbody>
+          </table>
+    </div>
+
+      </div>
+      <!-- <div class="container mt-2 mb-3">
+        <h2>Admin Gallery</h2>
+        <div class="row">
+          <div class="col-md-4">
+            <h4>Home Page</h4>
+
+
+            <div id="adminCarousel" class="carousel slide" data-bs-ride="carousel">
+              <div class="carousel-inner" id="carouselImages">
+
+              </div>
+              <button class="carousel-control-prev" type="button" data-bs-target="#adminCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+              </button>
+              <button class="carousel-control-next" type="button" data-bs-target="#adminCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div> -->
+    </main>
+  </div>
+</body>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="./src/js/adminDash.js"></script>
+
+</html>

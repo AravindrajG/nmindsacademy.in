@@ -1,0 +1,60 @@
+
+.logo {
+    display: flex;
+    justify-content:start;
+    align-items: center;
+    max-width: 150px;
+}
+
+.logo img {
+    width: auto; /* Restrict image to fit within the container */
+    height:80px; /* Maintain aspect ratio */
+}
+
+.top-logo {
+
+    /* display: flex;
+    justify-content: center;
+    align-items: center;
+    max-width: 200px;
+    margin: 0 auto; */
+}
+.top-logo img{
+    width: auto;
+    height:100px;
+}
+
+:root {
+    --marquee-animation-duration: 20s; /* Adjust for faster/slower scrolling */
+}
+
+.marquee {
+    overflow: hidden;
+    position: relative;
+    white-space: nowrap;
+    background-color: #f8f9fa; /* Optional: background color for better contrast */
+    padding: 10px 0;
+}
+
+.marquee-content {
+    list-style: none;
+    display: flex;
+    gap: 30px; /* Adjust space between logos */
+    animation: scrolling var(--marquee-animation-duration) linear infinite;
+}
+
+@keyframes scrolling {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-100%);
+    }
+}
+
+.brand-img img {
+    height: 85px;
+    width: 85px;
+    object-fit: contain;
+}
+

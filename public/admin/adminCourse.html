@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Add Courses</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="./src/css/index.css">
+    <link href="https://unpkg.com/lucide-icons" rel="stylesheet">
+    <link href="../assets/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/font-awesome.css"></head>
+    <style>
+      .header-right .icon-items i {
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+    border-radius: 50%;
+    background-color: #C3F499;
+    font-size: 14px;
+  }
+    </style>
+<body>
+    <!-- Dashboard -->
+    <div class="dashboard ">
+        <!-- Sidebar -->
+
+        <aside class="sidebar">
+            <div class="sidebar-header text-center">
+              <img src="../assets/img/logo/Nminds Academy Logo-R.jpeg" width="120" height="90" class="rounded"/>
+            </div>
+
+            <nav class="sidebar-nav">
+              <a href="adminDash.html" class="nav-item">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+              </a>
+              <a href="adminCourse.html" class="nav-item active">
+                <i class="fas fa-book"></i>
+                <span>Add Courses</span>
+              </a>
+              <a href="addAdmin.html" class="nav-item">
+                <i class="fas fa-user-plus"></i>
+                <span>Add Admin</span>
+              </a>
+              <a href="addCourseType.html" class="nav-item">
+                <i class="fas fa-layer-group"></i>
+                <span>Course Type</span>
+              </a>
+              <a href="adminEvent.html" class="nav-item">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Events</span>
+              </a>
+              <a href="addBlogCategory.html" class="nav-item">
+                <i class="fas fa-list-alt"></i>
+                <span>Blog Category</span>
+              </a>
+              <a href="adminBlog.html" class="nav-item">
+                <i class="fas fa-blog"></i>
+                <span>Blog</span>
+              </a>
+              <a href="adminProject.html" class="nav-item">
+                <i class="fas fa-tasks"></i>
+                <span>Project</span>
+              </a>
+              <a href="#" class="nav-item logout" id="logout-btn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+              </a>
+            </nav>
+        </aside>
+        <main class="main-content">
+            <header class="topbar">
+                <div class="welcome">
+                    <h2>Course</h2>
+                    <p>Manage your courses</p>
+                </div>
+
+                <div class="topbar-actions">
+                    <button class="icon-btn">
+                        <i class="icon-bell"></i>
+                    </button>
+                    <button class="icon-btn">
+                        <i class="icon-settings"></i>
+                    </button>
+                    <div class="header-right d-flex justify-content-end align-items-center">
+                      <div class="icon-items d-flex align-items-center gap-2">
+                        <i class="fas fa-user"></i>
+                        <h6 class="User mb-0">
+                          <a href="javascript:void(0);" id="user-role" class="text-decoration-none">Login</a>
+                        </h6>
+                      </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="d-flex justify-content-end mb-3 mt-3">
+                <button type="button" class="btn btn-success me-3" data-bs-toggle="modal"
+                    data-bs-target="#addCourseModal">
+                    Add New Course
+                </button>
+            </div>
+
+            <div id="courses-container" class="content dashboard-content row">
+                <h2>No Courses</h2>
+            </div>
+            <div class="modal fade" id="addCourseModal" tabindex="-1" aria-labelledby="addCourseModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="addCourseModalLabel">Add Course</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="add-course-form">
+                                <div class="mb-3">
+                                    <label for="title" class="form-label">Course Title</label>
+                                    <input type="text" class="form-control" id="title" name="title" required>
+                                </div>
+                                <div class="mb-3 w-full">
+                                    <label for="courseType">Course Type:</label>
+                                    <select id="courseType" name="type" class="form-select" required>
+                                        <option value="">Select a type</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="description" class="form-label">Description</label>
+                                    <textarea class="form-control" id="description" name="description" rows="3"
+                                        required></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="instructor" class="form-label">Instructor</label>
+                                    <input type="text" class="form-control" id="instructor" name="instructor" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="instructor" class="form-label">Price (RS)</label>
+                                    <input type="Number" class="form-control" id="price" name="price" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="instructor" class="form-label">Students Count</label>
+                                    <input type="number" class="form-control" id="studentsCount" name="studentsCount"
+                                        required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="duration" class="form-label">Course Duration</label>
+                                    <input type="text" class="form-control" id="duration" name="duration"
+                                        placeholder="7h 30min" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="pdf" class="form-label">Upload PDF</label>
+                                    <input type="file" class="form-control" id="pdf" name="pdf" accept=".pdf" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="image" class="form-label">Upload Image (size: 180*168)</label>
+                                    <input type="file" class="form-control" id="image" name="image" accept="image/*"
+                                        required>
+                                </div>
+                                <div id="sectionsContainer">
+                                    <label class="form-label">Sections</label>
+                                    <div class="section-item mb-3" data-section-index="0">
+                                      <div class="input-group mb-2">
+                                        <input
+                                          type="text"
+                                          class="form-control section-title"
+                                          placeholder="Section Title"
+                                          required
+                                        />
+                                        <button type="button" class="btn btn-danger remove-section">Remove Section</button>
+                                      </div>
+                                      <div class="lessons-container">
+                                        <label class="form-label">Lessons</label>
+                                        <div class="input-group mb-2 lesson-item">
+                                          <input
+                                            type="text"
+                                            class="form-control lesson-title"
+                                            placeholder="Lesson Title"
+                                            required
+                                          />
+                                          <input
+                                            type="text"
+                                            class="form-control lesson-duration"
+                                            placeholder="Duration (e.g., 45:00 m)"
+                                            required
+                                          />
+                                          <button type="button" class="btn btn-danger remove-lesson">Remove Lesson</button>
+                                        </div>
+                                      </div>
+                                      <button type="button" class="btn btn-secondary add-lesson">Add Lesson</button>
+                                    </div>
+                                  </div>
+                                  <div>
+                                  <button type="button" class="btn btn-primary add-section">Add Section</button>
+
+                                  <!-- <button type="submit" class="btn btn-success mt-3">Add Course</button>
+                                  <button type="submit" id="save-course" class="btn btn-primary float-right">Save Course</button>
+                                  <button type="submit" id="update-course" class="btn btn-primary hidden">Update Course</button> -->
+                              </div>
+
+                                <button type="button" id="save-course" class="btn btn-primary mt-3 float-right">Save Course</button>
+                                <button type="button" id="update-course" class="btn btn-primary hidden">Update Course</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- <div class="modal fade" id="addCourseModal" tabindex="-1" aria-labelledby="addCourseModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="addCourseModalLabel">Add New Course</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                      <form id="addCourseForm">
+                        <div class="mb-3">
+                          <label for="title" class="form-label">Course Title</label>
+                          <input type="text" class="form-control" id="title" name="title" required />
+                        </div>
+                        <div class="mb-3">
+                          <label for="description" class="form-label">Description</label>
+                          <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                          <label for="instructor" class="form-label">Instructor</label>
+                          <input type="text" class="form-control" id="instructor" name="instructor" required />
+                        </div>
+                        <div class="mb-3">
+                          <label for="price" class="form-label">Price</label>
+                          <input type="number" class="form-control" id="price" name="price" step="0.01" />
+                        </div>
+                        <div class="mb-3">
+                          <label for="type" class="form-label">Course Type</label>
+                          <select class="form-control" id="type" name="type" required>
+                            <option value="">Select Type</option>
+                          </select>
+                        </div>
+                        <div class="mb-3">
+                          <label for="duration" class="form-label">Duration</label>
+                          <input type="text" class="form-control" id="duration" name="duration" />
+                        </div>
+
+                        <div id="sectionsContainer">
+                          <label class="form-label">Sections</label>
+                          <div class="section-item mb-3" data-section-index="0">
+                            <div class="input-group mb-2">
+                              <input
+                                type="text"
+                                class="form-control section-title"
+                                placeholder="Section Title"
+                                required
+                              />
+                              <button type="button" class="btn btn-danger remove-section">Remove Section</button>
+                            </div>
+                            <div class="lessons-container">
+                              <label class="form-label">Lessons</label>
+                              <div class="input-group mb-2 lesson-item">
+                                <input
+                                  type="text"
+                                  class="form-control lesson-title"
+                                  placeholder="Lesson Title"
+                                  required
+                                />
+                                <input
+                                  type="text"
+                                  class="form-control lesson-duration"
+                                  placeholder="Duration (e.g., 45:00 m)"
+                                  required
+                                />
+                                <button type="button" class="btn btn-danger remove-lesson">Remove Lesson</button>
+                              </div>
+                            </div>
+                            <button type="button" class="btn btn-secondary add-lesson">Add Lesson</button>
+                          </div>
+                        </div>
+                        <div>
+                        <button type="button" class="btn btn-primary add-section">Add Section</button>
+
+                        <button type="submit" class="btn btn-success mt-3">Add Course</button>
+                        <button type="submit" id="save-course" class="btn btn-primary float-right">Save Course</button>
+                        <button type="submit" id="update-course" class="btn btn-primary hidden">Update Course</button>
+                    </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>-->
+
+        </main>
+    </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="./src/js/adminCourse.js"></script>
+</body>
+
+</html>
