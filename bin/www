@@ -1,55 +1,70 @@
 #!/usr/bin/env node
 
-const app = require('../app');
-const debug = require('debug')('backend:server');
-const http = require('http');
-const https = require('https');
-const fs = require('fs'); // Only needed if using SSL locally
+/**
+ * Module dependencies.
+ */
 
-const port = normalizePort(process.env.PORT || '3000');
+var app = require('../app');
+var debug = require('debug')('backend:server');
+var http = require('http');
+var https = require('https');
+
+/**
+ * Get port from environment and store in Express.
+ */
+
+var port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);
 
-// Check if running in production (on Render) or local development
-if (process.env.NODE_ENV === 'production') {
-  // HTTP server (redirect to HTTPS in production)
-  http.createServer((req, res) => {
-    res.redirect(301, 'https://' + req.headers.host + req.url); // Redirect to HTTPS
-  }).listen(80, () => {
-    console.log('HTTP server running on port 80');
-  });
+/**
+ * Create HTTP server.
+ */
 
-  // HTTPS server (only in production)
-  https.createServer({
-    // SSL certificates for production (you may add certificates in the future)
-    // key: fs.readFileSync('path/to/private.key'),
-    // cert: fs.readFileSync('path/to/certificate.crt')
-  }, app).listen(443, () => {
-    console.log('HTTPS server running on port 443');
-  });
+var server = http.createServer(app); // If you need the HTTP server
 
-} else {
-  // Local development setup: Run normally, no HTTP to HTTPS redirection
-  app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-  });
-}
+/**
+ * Listen on provided port, on all network interfaces.
+ */
+
+server.listen(port);
+server.on('error', onError);
+server.on('listening', onListening);
+console.log('server started')
+
+/**
+ * Normalize a port into a number, string, or false.
+ */
 
 function normalizePort(val) {
-  const port = parseInt(val, 10);
+  var port = parseInt(val, 10);
+
   if (isNaN(port)) {
-    return val; // Named pipe
+    // named pipe
+    return val;
   }
+
   if (port >= 0) {
-    return port; // Port number
+    // port number
+    return port;
   }
+
   return false;
 }
+
+/**
+ * Event listener for HTTP server "error" event.
+ */
 
 function onError(error) {
   if (error.syscall !== 'listen') {
     throw error;
   }
-  const bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port;
+
+  var bind = typeof port === 'string'
+    ? 'Pipe ' + port
+    : 'Port ' + port;
+
+  // handle specific listen errors with friendly messages
   switch (error.code) {
     case 'EACCES':
       console.error(bind + ' requires elevated privileges');
@@ -64,8 +79,14 @@ function onError(error) {
   }
 }
 
+/**
+ * Event listener for HTTP server "listening" event.
+ */
+
 function onListening() {
-  const addr = server.address();
-  const bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port;
+  var addr = server.address();
+  var bind = typeof addr === 'string'
+    ? 'pipe ' + addr
+    : 'port ' + addr.port;
   debug('Listening on ' + bind);
 }
