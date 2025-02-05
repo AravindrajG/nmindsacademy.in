@@ -16,12 +16,12 @@ app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-
-
+// Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI)
-.then(() => console.log('Connected to MongoDB'))
-.catch(err => console.error('MongoDB connection error:', err));
+  .then(() => console.log('Connected to MongoDB'))
+  .catch(err => console.error('MongoDB connection error:', err));
 
+// Routes
 app.use('/api/users', userRoutes);
 app.use('/api/course', require('./routes/courseRoute'));
 app.use('/api/admin', require('./routes/adminRoute'));
@@ -30,13 +30,25 @@ app.use('/api/events', require('./routes/eventRoute'));
 app.use('/api/blogs', require('./routes/blogRoute'));
 app.use('/api/projects', require('./routes/projectRoute'));
 
+// 404 Page
 app.use((req, res, next) => {
-  res.status(404).sendFile(__dirname + '/public/404.html'); // Adjust the path to your 404 page
+  res.status(404).sendFile(path.join(__dirname, 'public', '404.html')); // Adjust the path to your 404 page
 });
 
+// Homepage route
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Redirect HTTP to HTTPS (only in production)
 
-module.exports = app; // Export the app
+if (process.env.NODE_ENV === 'production') {
+  app.use((req, res, next) => {
+    if (req.protocol !== 'https') {
+      return res.redirect(301, 'https://' + req.headers.host + req.url);
+    }
+    next();
+  });
+}
+
+module.exports = app;

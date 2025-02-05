@@ -2,6 +2,7 @@ const Blog = require('../models/blog');
 const BlogCategory = require('../models/blogCategory');
 const fs = require('fs');
 const path = require('path');
+const cloudinary = require('../config/cloudinaryConfig');
 
 exports.submitBlogs = async (req, res) => {
   try {
@@ -10,22 +11,36 @@ exports.submitBlogs = async (req, res) => {
       quote, bullets, subheadingH4, additionalContent, blogCategory
     } = req.body;
 
-    // Handle bullet points as an array
     const bulletArray = bullets ? bullets.split('\n').map((line) => line.trim()) : [];
-    const mainImage = req.files.mainImage ? `/uploads/${req.files.mainImage[0].filename}` : null;
-    const secondImage = req.files.secondImage ? `/uploads/${req.files.secondImage[0].filename}` : null;
 
+    let mainImageUrl = null;
+    if (req.files.mainImage) {
+      const resultMainImage = await cloudinary.uploader.upload(req.files.mainImage[0].path, {
+        folder: 'blog_images',
+      });
+      mainImageUrl = resultMainImage.secure_url;
+    }
+
+    let secondImageUrl = null;
+    if (req.files.secondImage) {
+      const resultSecondImage = await cloudinary.uploader.upload(req.files.secondImage[0].path, {
+        folder: 'blog_images',  // Optional: Specify a folder in Cloudinary
+      });
+      secondImageUrl = resultSecondImage.secure_url;
+    }
+
+    // Create blog post
     const blog = new Blog({
       title,
       author,
       date,
-      mainImage,
+      mainImage: mainImageUrl,
       mainContent,
       subheading,
       quote,
       bullets: bulletArray,
       subheadingH4,
-      secondImage,
+      secondImage: secondImageUrl,
       additionalContent,
       blogCategory
     });
@@ -36,7 +51,7 @@ exports.submitBlogs = async (req, res) => {
     console.error('Error creating blog post:', err);
     res.status(500).json({ message: 'An error occurred while creating the blog post' });
   }
-}
+};
 
 exports.getAllBlogs = async (req, res) => {
   try {
@@ -97,6 +112,7 @@ exports.getRandom = async (req, res) => {
   }
 }
 
+
 exports.deleteBlogById = async (req, res) => {
   try {
     const id = req.params.id;
@@ -106,36 +122,45 @@ exports.deleteBlogById = async (req, res) => {
       return res.status(404).json({ message: 'Blog not found' });
     }
 
-    // Check and delete main image if it exists
+    function getPublicIdFromUrl(url) {
+      const parts = url.split('/');  // Split by '/'
+      const publicId = parts.slice(7).join('/').split('.')[0]; // Join back folder parts and remove file extension
+      return publicId;
+    }
+
+
     if (blog.mainImage) {
-      const mainImagePath = path.join(__dirname, '..', blog.mainImage); // Adjust path according to your storage structure
-      if (fs.existsSync(mainImagePath)) {
-        fs.unlinkSync(mainImagePath); // Delete the image from the file system
-        console.log('Main image deleted successfully');
-      } else {
-        console.log('Main image not found');
-      }
+      const mainImagePublicId = getPublicIdFromUrl(blog.mainImage);
+      console.log(mainImagePublicId);
+
+      cloudinary.uploader.destroy(mainImagePublicId, (error, result) => {
+        if (error) {
+          console.log('Error deleting main image from Cloudinary:', error);
+        } else {
+          console.log('Main image deleted from Cloudinary:', result);
+        }
+      });
     }
 
-    // Check and delete second image if it exists
     if (blog.secondImage) {
-      const secondImagePath = path.join(__dirname, '..', blog.secondImage); // Adjust path according to your storage structure
-      if (fs.existsSync(secondImagePath)) {
-        fs.unlinkSync(secondImagePath); // Delete the image from the file system
-        console.log('Second image deleted successfully');
-      } else {
-        console.log('Second image not found');
-      }
+      const secondImagePublicId = getPublicIdFromUrl(blog.secondImage);
+      cloudinary.uploader.destroy(secondImagePublicId, (error, result) => {
+        if (error) {
+          console.log('Error deleting second image from Cloudinary:', error);
+        } else {
+          console.log('Second image deleted from Cloudinary:', result);
+        }
+      });
     }
 
-    // Delete the blog post from the database
     await blog.deleteOne();
     res.status(200).json({ message: 'Blog deleted successfully' });
   } catch (error) {
     console.error('Error deleting Blog:', error);
     res.status(500).json({ message: 'Server error' });
   }
-}
+};
+
 
 exports.editBlogById = async (req, res) => {
   try {
