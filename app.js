@@ -46,13 +46,11 @@ app.get('/', (req, res) => {
 if (process.env.NODE_ENV === 'production') {
   const http = require('http');
   http.createServer((req, res) => {
-    res.redirect(301, 'https://' + req.headers.host + req.url); // Redirect HTTP to HTTPS
-  }).listen(80); // HTTP port
-
-  // HTTPS server
-  https.createServer(app).listen(443, () => {
-    console.log('HTTPS server running on port 443');
-  });
+    res.writeHead(301, { Location: 'https://' + req.headers.host + req.url });
+    res.end();
+}).listen(PORT_HTTP, () => {
+    console.log(`HTTP server running on port ${PORT_HTTP}, redirecting to HTTPS`);
+});
 }
 
 module.exports = app;
