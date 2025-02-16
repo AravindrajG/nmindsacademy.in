@@ -2,7 +2,6 @@ const Blog = require('../models/blog');
 const BlogCategory = require('../models/blogCategory');
 const fs = require('fs');
 const path = require('path');
-const cloudinary = require('../config/cloudinaryConfig');
 
 exports.submitBlogs = async (req, res) => {
   try {
@@ -13,21 +12,17 @@ exports.submitBlogs = async (req, res) => {
 
     const bulletArray = bullets ? bullets.split('\n').map((line) => line.trim()) : [];
 
+
     let mainImageUrl = null;
     if (req.files.mainImage) {
-      const resultMainImage = await cloudinary.uploader.upload(req.files.mainImage[0].path, {
-        folder: 'blog_images',
-      });
-      mainImageUrl = resultMainImage.secure_url;
+      mainImageUrl = req.files.mainImage[0].filename;
     }
 
     let secondImageUrl = null;
     if (req.files.secondImage) {
-      const resultSecondImage = await cloudinary.uploader.upload(req.files.secondImage[0].path, {
-        folder: 'blog_images',  // Optional: Specify a folder in Cloudinary
-      });
-      secondImageUrl = resultSecondImage.secure_url;
+      secondImageUrl = req.files.secondImage[0].filename;
     }
+
 
     // Create blog post
     const blog = new Blog({
@@ -130,25 +125,25 @@ exports.deleteBlogById = async (req, res) => {
 
 
     if (blog.mainImage) {
-      const mainImagePublicId = getPublicIdFromUrl(blog.mainImage);
-      console.log(mainImagePublicId);
+      const imagePath = path.join(__dirname, 'uploads', blog.mainImage); // Adjust path as needed
 
-      cloudinary.uploader.destroy(mainImagePublicId, (error, result) => {
-        if (error) {
-          console.log('Error deleting main image from Cloudinary:', error);
+      fs.unlink(imagePath, (err) => {
+        if (err) {
+          console.log('Error deleting main image:', err);
         } else {
-          console.log('Main image deleted from Cloudinary:', result);
+          console.log('Main image deleted successfully:', blog.mainImage);
         }
       });
     }
 
     if (blog.secondImage) {
-      const secondImagePublicId = getPublicIdFromUrl(blog.secondImage);
-      cloudinary.uploader.destroy(secondImagePublicId, (error, result) => {
-        if (error) {
-          console.log('Error deleting second image from Cloudinary:', error);
+      const imagePath = path.join(__dirname, 'uploads', blog.secondImage); // Adjust path as needed
+
+      fs.unlink(imagePath, (err) => {
+        if (err) {
+          console.log('Error deleting second image:', err);
         } else {
-          console.log('Second image deleted from Cloudinary:', result);
+          console.log('Second image deleted successfully:', blog.secondImage);
         }
       });
     }
@@ -191,16 +186,18 @@ exports.editBlogById = async (req, res) => {
       if (fs.existsSync(oldImagePath)) {
           fs.unlinkSync(oldImagePath);
       }
-      updatedData.mainImage = files.mainImage[0].path;
+      updatedData.mainImage = files.mainImage[0].filename;
   }
+
 
   if (files.secondImage) {
       const oldSecondImagePath = path.join(__dirname, '..', existingBlog.secondImage);
       if (fs.existsSync(oldSecondImagePath)) {
           fs.unlinkSync(oldSecondImagePath);
       }
-      updatedData.secondImage = files.secondImage[0].path;
+      updatedData.secondImage = files.secondImage[0].filename;
   }
+
     const updatedBlog = await Blog.findByIdAndUpdate(id, updatedData, { new: true });
 
     res.status(200).json({ message: 'Blog updated successfully', blog: updatedBlog });

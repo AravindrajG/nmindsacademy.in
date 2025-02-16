@@ -1,6 +1,4 @@
-import { host } from './helper.js';
 
-const route = host();
 
 document.getElementById("contact-form").addEventListener("submit", async function (e) {
     e.preventDefault(); // Prevent the default form submission

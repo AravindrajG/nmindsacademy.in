@@ -18,7 +18,7 @@ async function fetchBlogs() {
         // Create the HTML structure dynamically
         const blogHTML = `
           <div class="single-blog-post mb-3">
-            <div class="post-featured-thumb bg-cover" style="background-image: url('${blog.mainImage}'); background-size: 1200px 713px;"></div>
+            <div class="post-featured-thumb bg-cover" style="background-image: url('uploads/${blog.mainImage}'); background-size: 1200px 713px;"></div>
             <div class="post-content">
               <div class="post-meta">
                 <span><i class="fal fa-calendar-alt"></i>${new Date(blog.date).toLocaleDateString('ind')}</span>

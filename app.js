@@ -7,6 +7,7 @@ const https = require('https');
 require('dotenv').config();
 const mongoose = require('mongoose');
 const userRoutes = require('./routes/userRoute');
+const fs = require('fs');
 
 app.use(cors());
 
@@ -15,8 +16,13 @@ app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir);
+    console.log(`Directory 'uploads' created`);
+}
+app.use('/uploads', express.static(uploadsDir));
 const PORT_HTTP = 80;  // HTTP port
 const PORT_HTTPS = 443;
 

@@ -22,7 +22,6 @@ if (!token) {
 document.getElementById('registerAdminButton').addEventListener('click', async function (e) {
     e.preventDefault();
 
-    const modal = new bootstrap.Modal(document.getElementById('addProject'));
     // Get form data
     const title = document.getElementById("courseName").value.trim();
     const description = document.getElementById("description").value.trim();
@@ -56,7 +55,7 @@ document.getElementById('registerAdminButton').addEventListener('click', async f
         if (response.ok) {
             alert("Project added successfully!");
             fetchProjects();
-            modal.hide();
+            document.querySelector("#addProject .btn-close").click();
             document.getElementById('coursetype-register-form').reset();
         } else {
             alert(result.message || "Error adding project.");

@@ -71,9 +71,9 @@ exports.updateCourse = async (req, res) => {
     if (imageFile) {
       const oldImagePath = path.join(__dirname, '../uploads', course.image); // Path to old image
       if (fs.existsSync(oldImagePath)) {
-        fs.unlinkSync(oldImagePath); // Delete the old image
+        // fs.unlinkSync(oldImagePath);
       }
-      updatedFields.image = imageFile; // Set the new image filename
+      updatedFields.image = imageFile;
     }
 
     // If there's a new PDF, delete the old PDF if it exists

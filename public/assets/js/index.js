@@ -124,8 +124,8 @@ async function fetchLatestBlogs() {
             <div class="col-xl-3 col-lg-6 col-md-6 wow fadeInUp" data-wow-delay="${delay}s">
                 <div class="news-card-items">
                     <div class="news-image">
-                        <img src="${news.mainImage}" alt="img">
-                        <img src="${news.mainImage}" alt="img">
+                        <img src="uploads/${news.mainImage}" alt="img">
+                        <img src="uploads/${news.mainImage}" alt="img">
                         <div class="post-cat">${news?.blogCategory?.name || ''}</div>
                     </div>
                     <div class="news-content">

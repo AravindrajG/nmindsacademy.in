@@ -58,6 +58,7 @@ document.getElementById('saveBlog').addEventListener('click', async (e) => {
             const modal = document.getElementById('createBlogModal');
             const modalInstance = bootstrap.Modal.getInstance(modal);
             modalInstance.hide();
+            fetchCourseType();
         } else {
             const error = await response.json();
             alert(`Error: ${error.message}`);
