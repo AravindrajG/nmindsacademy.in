@@ -2,18 +2,27 @@
 const Event = require("../models/events");
 const fs = require('fs');
 const path = require('path');
+const cloudinary = require('../config/cloudinaryConfig');
 
 
 exports.addEvents =  async (req, res) => {
   try {
     const { title, description, learningOutcomes, location, fromDate, toDate, startTime, endTime, studentsCount, ticketPrice, map } = req.body;
-    const imageUrl = req.file.filename;
+    // const imageUrl = req.file.filename;
+    if (!req.file) {
+      return res.status(400).json({ message: 'Image file is required' });
+    }
+
+    // Upload image to Cloudinary
+    const uploadedImage = await cloudinary.uploader.upload(req.file.path, {
+      folder: 'events', // Specify folder in Cloudinary
+    });
 
     const newEvent = new Event({
         title,
         description,
         learningOutcomes,
-        image: imageUrl,
+        image: uploadedImage.secure_url,
         location,
         fromDate,
         toDate,
@@ -81,16 +90,33 @@ exports.deleteEventById = async (req, res) => {
         return res.status(404).json({ message: 'Event not found' });
       }
 
+      // if (event.image) {
+      //   const imagePath = path.join(__dirname, '../uploads', event.image);
+      //   if (fs.existsSync(imagePath)) {
+      //     fs.unlinkSync(imagePath);
+      //     console.log('Event image deleted successfully');
+      //   } else {
+      //     console.log('Event image not found');
+      //   }
+      // }
       if (event.image) {
-        const imagePath = path.join(__dirname, '../uploads', event.image);
-        if (fs.existsSync(imagePath)) {
-          fs.unlinkSync(imagePath);
-          console.log('Event image deleted successfully');
-        } else {
-          console.log('Event image not found');
-        }
-      }
+        const getPublicIdFromUrl = (url) => {
+          const parts = url.split('/');
+          const publicIdWithExtension = parts.slice(7).join('/'); // Start from folder path
+          return publicIdWithExtension.split('.')[0]; // Remove file extension
+        };
 
+        const publicId = getPublicIdFromUrl(event.image);
+
+        await cloudinary.uploader.destroy(publicId, (err, result) => {
+          if (err) {
+            console.error('Error deleting image from Cloudinary:', err);
+          } else {
+            console.log('Image deleted successfully from Cloudinary:', result);
+          }
+        });
+      }
+      
       await event.deleteOne();
       res.status(200).json({ message: 'Event deleted successfully' });
   } catch (error) {

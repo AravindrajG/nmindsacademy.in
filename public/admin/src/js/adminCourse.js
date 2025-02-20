@@ -121,12 +121,12 @@ async function fetchCourses() {
             const courseCard = `
         <div class="col-md-4">
             <div class="card mb-4 shadow-sm">
-                <img src="/uploads/${course.image}" class="card-img-top" alt="${course.title}" style="height: 200px; object-fit: cover;">
+                <img src="${course.image}" class="card-img-top" alt="${course.title}" style="height: 200px; object-fit: cover;">
                 <div class="card-body">
                     <h5 class="card-title">${course.title}</h5>
                     <p class="card-text">${course.description}</p>
                     <p class="card-text"><strong>instructor:</strong> ${course.instructor}</p>
-                    <a href="/uploads/${course.pdf}" target="_blank" class="btn btn-primary">Download PDF</a>
+                    <a href="${course.pdf}" target="_blank" class="btn btn-primary">Download PDF</a>
                                     <td>
             <button class="btn btn-warning btn-sm" data-course='${JSON.stringify(course)}' onclick="editCourse(this)">Edit</button>
             <button class="btn btn-danger btn-sm" onclick="deleteCourse('${course._id}')">Delete</button>

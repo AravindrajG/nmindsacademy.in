@@ -35,7 +35,7 @@ function populateEventDetails(course) {
     coursesItem.innerHTML = `
                                 <div class="courses-items">
                                     <div class="courses-image">
-                                        <img src="uploads/${course.image}" alt="img">
+                                        <img src="${course.image}" alt="img">
                                         <h3 class="courses-title">${course.title}</h3>
                                         <div class="arrow-items">
                                             <div class="GlidingArrow">

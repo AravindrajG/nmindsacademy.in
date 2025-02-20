@@ -20,7 +20,7 @@ async function fetchBlogDetails() {
     document.getElementById('blog-author').textContent = `By ${data.blog.author}`;
     document.getElementById('blog-date').textContent = new Date(data.blog.date).toLocaleDateString();
     document.getElementById('blog-main-content').textContent = data.blog.mainContent;
-    document.getElementById('blog-image').src =`uploads/${data.blog.mainImage}`;
+    document.getElementById('blog-image').src =`${data.blog.mainImage}`;
     document.getElementById('subheading').textContent = data.blog.subheading;
     document.getElementById('additional-content').textContent = data.blog.additionalContent;
     document.getElementById('quote').textContent = data.blog.quote;

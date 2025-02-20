@@ -23,7 +23,7 @@ async function fetchEvents() {
                   </div>
                 </div>
                 <div class="event-image">
-                  <img src="uploads/${event.image}" alt="Event Image" style="width: 240px; height: 148px; object-fit: cover;">
+                  <img src="${event.image}" alt="Event Image" style="width: 240px; height: 148px; object-fit: cover;">
                 </div>
                 <ul class="button-list">
                   <li>
@@ -61,7 +61,7 @@ async function fetchCourses() {
             const courseHTML = `
                 <div class="swiper-slide">
                     <div class="live-courses-main-items">
-                       <div class="live-courses-items bg-cover" style="background-image: url('uploads/${course.image}'); padding: 5px; height: 300px; background-size: cover; background-position: center;">
+                       <div class="live-courses-items bg-cover" style="background-image: url('${course.image}'); padding: 5px; height: 300px; background-size: cover; background-position: center;">
                             <div class="live-courses-content mt-3">
                                 <h3>
                                     <span>${course.title.split(" ")[0]}</span>
@@ -124,8 +124,8 @@ async function fetchLatestBlogs() {
             <div class="col-xl-3 col-lg-6 col-md-6 wow fadeInUp" data-wow-delay="${delay}s">
                 <div class="news-card-items">
                     <div class="news-image">
-                        <img src="uploads/${news.mainImage}" alt="img">
-                        <img src="uploads/${news.mainImage}" alt="img">
+                        <img src="${news.mainImage}" alt="img">
+                        <img src="${news.mainImage}" alt="img">
                         <div class="post-cat">${news?.blogCategory?.name || ''}</div>
                     </div>
                     <div class="news-content">

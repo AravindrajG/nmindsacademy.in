@@ -41,7 +41,7 @@ async function fetchEvents() {
           </div>
         </div>
         <div class="event-image">
-            <img src="uploads/${event.image}" alt="img" style="width: 240px; height: 148px; object-fit: cover;">
+            <img src="${event.image}" alt="img" style="width: 240px; height: 148px; object-fit: cover;">
         </div>
         <div class="event-btn">
           <a href="event-details.html?id=${event._id}" class="theme-btn">Book A Seat</a>

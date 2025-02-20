@@ -25,7 +25,7 @@ async function fetchCourses() {
                     <div class="courses-card-main-items">
                         <div class="courses-card-items style-2">
                             <div class="courses-image">
-                                <img src="uploads/${course.image}" alt="${course.title}">
+                                <img src="${course.image}" alt="${course.title}">
                                 <h3 class="courses-title">${course.title}</h3>
                                 <h4 class="topic-title"></h4>
                             </div>

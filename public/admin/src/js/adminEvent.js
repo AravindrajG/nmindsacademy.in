@@ -107,7 +107,7 @@ function addEventsToPage(events) {
           <td>${new Date(event.toDate).toLocaleDateString('in')}</td>
         <td>${convertTo12HourFormat(event.startTime)}</td>
         <td>${convertTo12HourFormat(event.endTime)}</td>
-        <td><img src="/uploads/${event.image}" alt="img" style="width: 50px; height: 50px; object-fit: cover;"></td>
+        <td><img src="${event.image}" alt="img" style="width: 50px; height: 50px; object-fit: cover;"></td>
           <td>
               <button class="btn btn-danger btn-sm" onclick="deleteCourse('${event?._id}')">Delete</button>
           </td>

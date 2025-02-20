@@ -43,7 +43,7 @@ function populateEventDetails(event) {
     const title = document.getElementById('breadcrumb-content');
     title.innerHTML = `<h1>${event?.title}</h1>`
     const img = document.getElementById('details-image');
-    img.innerHTML = `<img src="uploads/${event?.image}" alt="img" style="max-width: 1200px; max-height: 713px; width: 100%; height: auto; object-fit: cover;">`;
+    img.innerHTML = `<img src="${event?.image}" alt="img" style="max-width: 1200px; max-height: 713px; width: 100%; height: auto; object-fit: cover;">`;
     console.log(event?.image);
 
     const eventDescription = document.getElementById("event-description");

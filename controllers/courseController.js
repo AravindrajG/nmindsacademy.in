@@ -2,25 +2,45 @@ const Course = require('../models/course');
 const fs = require('fs');
 const path = require('path');
 const CourseType = require('../models/courseType');
+const cloudinary = require('../config/cloudinaryConfig');
 
 
 exports.addCourse = async (req, res) => {
     try {
-        const imageFile = req.files['image'] ? req.files['image'][0].filename : null;
-        const pdfFile = req.files['pdf'] ? req.files['pdf'][0].filename : null;
+        const { title, description, instructor, price, studentsCount, type, duration, sections } = req.body;
+
+        let imageUrl = null;
+        let pdfUrl = null;
+
+        // Upload image file to Cloudinary
+        if (req.files['image'] && req.files['image'][0]) {
+            const imageUpload = await cloudinary.uploader.upload(req.files['image'][0].path, {
+                folder: 'courses/images', // Folder to organize course images
+            });
+            imageUrl = imageUpload.secure_url; // Secure URL of the uploaded image
+        }
+
+        // Upload PDF file to Cloudinary
+        if (req.files['pdf'] && req.files['pdf'][0]) {
+            const pdfUpload = await cloudinary.uploader.upload(req.files['pdf'][0].path, {
+                folder: 'courses/pdfs', // Folder to organize course PDFs
+                resource_type: 'raw', // Specify the resource type for non-image files
+            });
+            pdfUrl = pdfUpload.secure_url; // Secure URL of the uploaded PDF
+        }
 
         // Create a new course document
         const newCourse = new Course({
-            title: req.body.title,
-            description: req.body.description,
-            instructor: req.body.instructor,
-            image: imageFile,
-            pdf: pdfFile,
-            price: req.body.price,
-            studentsCount: req.body.studentsCount,
-            type: req.body.type,
-            duration: req.body.duration,
-            sections: JSON.parse(req.body.sections) || []
+            title,
+            description,
+            instructor,
+            image: imageUrl, // Save Cloudinary image URL
+            pdf: pdfUrl, // Save Cloudinary PDF URL
+            price,
+            studentsCount,
+            type,
+            duration,
+            sections: JSON.parse(sections) || [],
         });
 
         // Save the course to the database
@@ -44,63 +64,98 @@ exports.allCourse = async (req, res) => {
 
 
 exports.updateCourse = async (req, res) => {
-  try {
-    const { id } = req.params;
+    try {
+        const { id } = req.params;
 
-    // Retrieve the current course to check existing files
-    const course = await Course.findById(id);
-    if (!course) {
-      return res.status(404).send({ message: 'Course not found' });
+        // Retrieve the current course to check existing files
+        const course = await Course.findById(id);
+        if (!course) {
+            return res.status(404).send({ message: 'Course not found' });
+        }
+
+        // Check if image or PDF files are sent in the request
+        const imageFile = req.files?.image ? req.files.image[0].filename : undefined;
+        const pdfFile = req.files?.pdf ? req.files.pdf[0].filename : undefined;
+
+        const updatedFields = {
+            title: req.body.title,
+            description: req.body.description,
+            instructor: req.body.instructor,
+            price: req.body.price,
+            studentsCount: req.body.studentsCount,
+            duration: req.body.duration,
+            sections: JSON.parse(req.body.sections),
+        };
+
+        // // If there's a new image, delete the old image if it exists
+        // if (imageFile) {
+        //   const oldImagePath = path.join(__dirname, '../uploads', course.image); // Path to old image
+        //   if (fs.existsSync(oldImagePath)) {
+        //     // fs.unlinkSync(oldImagePath);
+        //   }
+        //   updatedFields.image = imageFile;
+        // }
+
+        // // If there's a new PDF, delete the old PDF if it exists
+        // if (pdfFile) {
+        //   const oldPdfPath = path.join(__dirname, '../uploads', course.pdf); // Path to old PDF
+        //   if (fs.existsSync(oldPdfPath)) {
+        //     fs.unlinkSync(oldPdfPath); // Delete the old PDF
+        //   }
+        //   updatedFields.pdf = pdfFile; // Set the new PDF filename
+        // }
+
+        const getPublicIdFromUrl = (url) => {
+            const parts = url.split('/');
+            const publicIdWithExtension = parts.slice(7).join('/'); // Start from folder path
+            return publicIdWithExtension.split('.')[0]; // Remove file extension
+          };
+
+        // Delete old image from Cloudinary and upload the new one if provided
+        if (req.files?.image && req.files.image[0]) {
+            const oldImagePublicId = course.image ? getPublicIdFromUrl(course.image) : null;
+
+            if (oldImagePublicId) {
+                await cloudinary.uploader.destroy(oldImagePublicId);
+            }
+
+            const imageUpload = await cloudinary.uploader.upload(req.files.image[0].path, {
+                folder: 'courses/images',
+            });
+            updatedFields.image = imageUpload.secure_url; // Save the new image URL
+        }
+
+        // Delete old PDF from Cloudinary and upload the new one if provided
+        if (req.files?.pdf && req.files.pdf[0]) {
+            const oldPdfPublicId = course.pdf ? getPublicIdFromUrl(course.pdf) : null;
+
+            if (oldPdfPublicId) {
+                await cloudinary.uploader.destroy(oldPdfPublicId, { resource_type: 'raw' });
+            }
+
+            const pdfUpload = await cloudinary.uploader.upload(req.files.pdf[0].path, {
+                folder: 'courses/pdfs',
+                resource_type: 'raw', // Specify for non-image files
+            });
+            updatedFields.pdf = pdfUpload.secure_url; // Save the new PDF URL
+        }
+
+        if (req.body.type) {
+            updatedFields.type = req.body.type;
+        }
+
+        // Update the course with the new details and files
+        const updatedCourse = await Course.findByIdAndUpdate(id, updatedFields, { new: true });
+
+        if (!updatedCourse) {
+            return res.status(404).send({ message: 'Course not found' });
+        }
+
+        res.status(200).send({ message: 'Course updated successfully', course: updatedCourse });
+    } catch (error) {
+        console.error('Error updating course:', error);
+        res.status(500).send({ message: 'Server error' });
     }
-
-    // Check if image or PDF files are sent in the request
-    const imageFile = req.files?.image ? req.files.image[0].filename : undefined;
-    const pdfFile = req.files?.pdf ? req.files.pdf[0].filename : undefined;
-
-    const updatedFields = {
-      title: req.body.title,
-      description: req.body.description,
-      instructor: req.body.instructor,
-      price: req.body.price,
-      studentsCount: req.body.studentsCount,
-      duration: req.body.duration,
-      sections: JSON.parse(req.body.sections),
-    };
-
-    // If there's a new image, delete the old image if it exists
-    if (imageFile) {
-      const oldImagePath = path.join(__dirname, '../uploads', course.image); // Path to old image
-      if (fs.existsSync(oldImagePath)) {
-        // fs.unlinkSync(oldImagePath);
-      }
-      updatedFields.image = imageFile;
-    }
-
-    // If there's a new PDF, delete the old PDF if it exists
-    if (pdfFile) {
-      const oldPdfPath = path.join(__dirname, '../uploads', course.pdf); // Path to old PDF
-      if (fs.existsSync(oldPdfPath)) {
-        fs.unlinkSync(oldPdfPath); // Delete the old PDF
-      }
-      updatedFields.pdf = pdfFile; // Set the new PDF filename
-    }
-
-    if(req.body.type) {
-        updatedFields.type = req.body.type;
-    }
-
-    // Update the course with the new details and files
-    const updatedCourse = await Course.findByIdAndUpdate(id, updatedFields, { new: true });
-
-    if (!updatedCourse) {
-      return res.status(404).send({ message: 'Course not found' });
-    }
-
-    res.status(200).send({ message: 'Course updated successfully', course: updatedCourse });
-  } catch (error) {
-    console.error('Error updating course:', error);
-    res.status(500).send({ message: 'Server error' });
-  }
 };
 
 
@@ -115,15 +170,51 @@ exports.deleteCourse = async (req, res) => {
             return res.status(404).send({ message: 'Course not found' });
         }
 
-        if (course.image) {
-            const imagePath = path.join(__dirname, '..', 'uploads', course.image);
-            fs.unlinkSync(imagePath);
-        }
+        // if (course.image) {
+        //     const imagePath = path.join(__dirname, '..', 'uploads', course.image);
+        //     fs.unlinkSync(imagePath);
+        // }
 
-        if (course.pdf) {
-            const pdfPath = path.join(__dirname, '..', 'uploads', course.pdf);
-            fs.unlinkSync(pdfPath);
+        // if (course.pdf) {
+        //     const pdfPath = path.join(__dirname, '..', 'uploads', course.pdf);
+        //     fs.unlinkSync(pdfPath);
+        // }
+
+         // Delete the course image from Cloudinary
+
+        const getPublicIdFromUrl = (url) => {
+            const parts = url.split('/');
+            const publicIdWithExtension = parts.slice(7).join('/'); // Start from folder path
+            return publicIdWithExtension.split('.')[0]; // Remove file extension
+          };
+
+    if (course.image) {
+        const imagePublicId = getPublicIdFromUrl(course.image);
+        if (imagePublicId) {
+          await cloudinary.uploader.destroy(imagePublicId, (error, result) => {
+            if (error) {
+              console.error('Error deleting image from Cloudinary:', error);
+            } else {
+              console.log('Image deleted from Cloudinary:', result);
+            }
+          });
         }
+      }
+
+      // Delete the course PDF from Cloudinary
+      if (course.pdf) {
+        const pdfPublicId = getPublicIdFromUrl(course.pdf);
+        if (pdfPublicId) {
+          await cloudinary.uploader.destroy(pdfPublicId, { resource_type: 'raw' }, (error, result) => {
+            if (error) {
+              console.error('Error deleting PDF from Cloudinary:', error);
+            } else {
+              console.log('PDF deleted from Cloudinary:', result);
+            }
+          });
+        }
+      }
+
 
         await Course.findByIdAndDelete(id);
 
@@ -226,33 +317,33 @@ exports.deleteCourseType = async (req, res) => {
 };
 
 exports.getCourse = async (req, res) => {
-  const { id } = req.params;
+    const { id } = req.params;
 
-  try {
-    const course = await Course.findById(id).populate('type');
+    try {
+        const course = await Course.findById(id).populate('type');
 
-    if (!course) {
-        return res.status(404).json({ message: 'Course type not found' });
+        if (!course) {
+            return res.status(404).json({ message: 'Course type not found' });
+        }
+        res.status(200).json(course);
+    } catch (err) {
+        console.error("Error fetching course details:", err);
+        res.status(500).json({ message: "An error occurred while fetching course details." });
     }
-    res.status(200).json(course);
-} catch (err) {
-    console.error("Error fetching course details:", err);
-    res.status(500).json({ message: "An error occurred while fetching course details." });
-  }
 }
 
-exports.getRandomCourse =async (req, res) => {
-  try {
-    const randomCourse = await Course.find().populate('type').limit(1);
+exports.getRandomCourse = async (req, res) => {
+    try {
+        const randomCourse = await Course.find().populate('type').limit(1);
 
-      if (!randomCourse || randomCourse.length === 0) {
-       return res.status(404).json({ message: "No Courses found." });
-     }
-     res.status(200).json(randomCourse[0]);
-   } catch (err) {
-     console.error("Error fetching random event:", err);
-     res.status(500).json({ message: "An error occurred while fetching a random event." });
-   }
+        if (!randomCourse || randomCourse.length === 0) {
+            return res.status(404).json({ message: "No Courses found." });
+        }
+        res.status(200).json(randomCourse[0]);
+    } catch (err) {
+        console.error("Error fetching random event:", err);
+        res.status(500).json({ message: "An error occurred while fetching a random event." });
+    }
 }
 
 exports.rating = async (req, res) => {

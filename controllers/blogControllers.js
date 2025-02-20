@@ -2,6 +2,7 @@ const Blog = require('../models/blog');
 const BlogCategory = require('../models/blogCategory');
 const fs = require('fs');
 const path = require('path');
+const cloudinary = require('../config/cloudinaryConfig');
 
 exports.submitBlogs = async (req, res) => {
   try {
@@ -12,15 +13,22 @@ exports.submitBlogs = async (req, res) => {
 
     const bulletArray = bullets ? bullets.split('\n').map((line) => line.trim()) : [];
 
-
     let mainImageUrl = null;
-    if (req.files.mainImage) {
-      mainImageUrl = req.files.mainImage[0].filename;
+    let secondImageUrl = null;
+   if (req.files.mainImage) {
+      const mainImage = req.files.mainImage[0];
+      const mainImageUpload = await cloudinary.uploader.upload(mainImage.path, {
+        folder: 'blog_images',
+      });
+      mainImageUrl = mainImageUpload.secure_url;
     }
 
-    let secondImageUrl = null;
     if (req.files.secondImage) {
-      secondImageUrl = req.files.secondImage[0].filename;
+      const secondImage = req.files.secondImage[0];
+      const secondImageUpload = await cloudinary.uploader.upload(secondImage.path, {
+        folder: 'blog_images',
+      });
+      secondImageUrl = secondImageUpload.secure_url;
     }
 
 
@@ -118,35 +126,57 @@ exports.deleteBlogById = async (req, res) => {
     }
 
     function getPublicIdFromUrl(url) {
-      const parts = url.split('/');  // Split by '/'
-      const publicId = parts.slice(7).join('/').split('.')[0]; // Join back folder parts and remove file extension
+      const parts = url.split('/');
+      const publicId = parts.slice(7).join('/').split('.')[0];
       return publicId;
     }
-
-
     if (blog.mainImage) {
-      const imagePath = path.join(__dirname, 'uploads', blog.mainImage); // Adjust path as needed
-
-      fs.unlink(imagePath, (err) => {
+      const mainImagePublicId = getPublicIdFromUrl(blog.mainImage);
+      await cloudinary.uploader.destroy(mainImagePublicId, (err, result) => {
         if (err) {
-          console.log('Error deleting main image:', err);
+          console.error('Error deleting main image from Cloudinary:', err);
         } else {
-          console.log('Main image deleted successfully:', blog.mainImage);
+          console.log('Main image deleted successfully from Cloudinary:', result);
         }
       });
     }
 
+    // Delete second image from Cloudinary
     if (blog.secondImage) {
-      const imagePath = path.join(__dirname, 'uploads', blog.secondImage); // Adjust path as needed
-
-      fs.unlink(imagePath, (err) => {
+      const secondImagePublicId = getPublicIdFromUrl(blog.secondImage);
+      await cloudinary.uploader.destroy(secondImagePublicId, (err, result) => {
         if (err) {
-          console.log('Error deleting second image:', err);
+          console.error('Error deleting second image from Cloudinary:', err);
         } else {
-          console.log('Second image deleted successfully:', blog.secondImage);
+          console.log('Second image deleted successfully from Cloudinary:', result);
         }
       });
     }
+
+
+    // if (blog.mainImage) {
+    //   const imagePath = path.join(__dirname, 'uploads', blog.mainImage); // Adjust path as needed
+
+    //   fs.unlink(imagePath, (err) => {
+    //     if (err) {
+    //       console.log('Error deleting main image:', err);
+    //     } else {
+    //       console.log('Main image deleted successfully:', blog.mainImage);
+    //     }
+    //   });
+    // }
+
+    // if (blog.secondImage) {
+    //   const imagePath = path.join(__dirname, 'uploads', blog.secondImage); // Adjust path as needed
+
+    //   fs.unlink(imagePath, (err) => {
+    //     if (err) {
+    //       console.log('Error deleting second image:', err);
+    //     } else {
+    //       console.log('Second image deleted successfully:', blog.secondImage);
+    //     }
+    //   });
+    // }
 
     await blog.deleteOne();
     res.status(200).json({ message: 'Blog deleted successfully' });
@@ -181,22 +211,65 @@ exports.editBlogById = async (req, res) => {
       blogCategory: req.body.blogCategory
     };
 
+    function getPublicIdFromUrl(url) {
+      const parts = url.split('/');
+      const publicIdWithExtension = parts.slice(7).join('/');
+      return publicIdWithExtension.split('.')[0];
+    }
+
+    // Handle main image
     if (files.mainImage) {
-      const oldImagePath = path.join(__dirname, '..', existingBlog.mainImage);
-      if (fs.existsSync(oldImagePath)) {
-          fs.unlinkSync(oldImagePath);
+      // Delete the old main image from Cloudinary
+      if (existingBlog.mainImage) {
+        const mainImagePublicId = getPublicIdFromUrl(existingBlog.mainImage);
+        await cloudinary.uploader.destroy(mainImagePublicId, (err, result) => {
+          if (err) console.error('Error deleting old main image:', err);
+          else console.log('Old main image deleted successfully:', result);
+        });
       }
-      updatedData.mainImage = files.mainImage[0].filename;
-  }
+
+      // Upload the new main image to Cloudinary
+      const mainImageUpload = await cloudinary.uploader.upload(files.mainImage[0].path, {
+        folder: 'blog_images',
+      });
+      updatedData.mainImage = mainImageUpload.secure_url;
+    }
+
+    // Handle second image
+    if (files.secondImage) {
+      // Delete the old second image from Cloudinary
+      if (existingBlog.secondImage) {
+        const secondImagePublicId = getPublicIdFromUrl(existingBlog.secondImage);
+        await cloudinary.uploader.destroy(secondImagePublicId, (err, result) => {
+          if (err) console.error('Error deleting old second image:', err);
+          else console.log('Old second image deleted successfully:', result);
+        });
+      }
+
+      // Upload the new second image to Cloudinary
+      const secondImageUpload = await cloudinary.uploader.upload(files.secondImage[0].path, {
+        folder: 'blog_images',
+      });
+      updatedData.secondImage = secondImageUpload.secure_url;
+    }
 
 
-  if (files.secondImage) {
-      const oldSecondImagePath = path.join(__dirname, '..', existingBlog.secondImage);
-      if (fs.existsSync(oldSecondImagePath)) {
-          fs.unlinkSync(oldSecondImagePath);
-      }
-      updatedData.secondImage = files.secondImage[0].filename;
-  }
+  //   if (files.mainImage) {
+  //     const oldImagePath = path.join(__dirname, '..', existingBlog.mainImage);
+  //     if (fs.existsSync(oldImagePath)) {
+  //         fs.unlinkSync(oldImagePath);
+  //     }
+  //     updatedData.mainImage = files.mainImage[0].filename;
+  // }
+
+
+  // if (files.secondImage) {
+  //     const oldSecondImagePath = path.join(__dirname, '..', existingBlog.secondImage);
+  //     if (fs.existsSync(oldSecondImagePath)) {
+  //         fs.unlinkSync(oldSecondImagePath);
+  //     }
+  //     updatedData.secondImage = files.secondImage[0].filename;
+  // }
 
     const updatedBlog = await Blog.findByIdAndUpdate(id, updatedData, { new: true });
 
@@ -241,9 +314,6 @@ exports.updateCategory = async (req, res) => {
   try {
     const { id } = req.params;
     const { name, description } = req.body;
-
-    console.log('Request body:', name);
-    console.log('ID:', id);
 
     const courseType = await BlogCategory.findById(id);
 

@@ -2,6 +2,7 @@
 const Project = require('../models/project');
 const fs = require('fs');
 const path = require('path');
+const cloudinary = require('../config/cloudinaryConfig');
 
 
 exports.addCategory = async (req, res) => {
@@ -12,10 +13,20 @@ exports.addCategory = async (req, res) => {
             return res.status(400).json({ message: "All fields are required!." });
         }
 
-        const imageUrl = `${req.files.image[0].filename}`;
-        const proofUrl = `${req.files.proof[0].filename}`;
+        // const imageUrl = `${req.files.image[0].filename}`;
+        // const proofUrl = `${req.files.proof[0].filename}`;
 
-        const project = new Project({ title, description, mainImage: imageUrl, proof: proofUrl });
+        const uploadedImage = await cloudinary.uploader.upload(req.files.image[0].path, {
+            folder: "projects", // Optional: Organize files in a folder
+          });
+
+          // Upload proof to Cloudinary
+          const uploadedProof = await cloudinary.uploader.upload(req.files.proof[0].path, {
+            folder: "projects", // Optional: Organize files in a folder
+            resource_type: "raw", // Use raw for files like PDFs
+          });
+
+        const project = new Project({ title, description, mainImage: uploadedImage, proof: uploadedProof });
         await project.save();
 
         res.status(201).json({ data: project });
@@ -59,13 +70,29 @@ exports.deleteProject = async (req, res) => {
         const proofPath = path.join(__dirname, "..", "uploads", projects.proof);
         console.log(mainImagePath);
 
-        [mainImagePath, proofPath].forEach((file) => {
-            if (file) {
-                if (fs.existsSync(file)) {
-                    fs.unlinkSync(file);
-                }
+        // [mainImagePath, proofPath].forEach((file) => {
+        //     if (file) {
+        //         if (fs.existsSync(file)) {
+        //             fs.unlinkSync(file);
+        //         }
+        //     }
+        // });
+        function extractPublicId(url) {
+            const parts = url.split("/");
+            const fileName = parts[parts.length - 1].split(".")[0];
+            return `projects/${fileName}`; // Assuming the file is in the "projects" folder
+          }
+
+          const mainImagePublicId = extractPublicId(project.mainImage);
+          const proofPublicId = extractPublicId(project.proof);
+
+        const deleteOperations = [mainImagePublicId, proofPublicId].map((publicId) => {
+            if (publicId) {
+              return cloudinary.uploader.destroy(publicId, { resource_type: "auto" });
             }
-        });
+          });
+
+          await Promise.all(deleteOperations);
 
         await projects.deleteOne();
         res.status(200).json({ message: "Project deleted successfully" });
@@ -100,39 +127,84 @@ exports.editProject = async (req, res) => {
         const uploadDir = path.join(__dirname, "..", "uploads");
         console.log(req.files);
 
-        // Handle main image update
-        if (req.files["mainImage"]) {
-            const newMainImage = req.files["mainImage"][0].filename;
-            console.log(newMainImage,'lkcslsk--->????');
+        // // Handle main image update
+        // if (req.files["mainImage"]) {
+        //     const newMainImage = req.files["mainImage"][0].filename;
 
 
-            // Delete old image if exists
+        //     // Delete old image if exists
+        //     if (project.mainImage) {
+        //         const oldImagePath = path.join(uploadDir, project.mainImage);
+        //         if (fs.existsSync(oldImagePath)) {
+        //             fs.unlinkSync(oldImagePath);
+        //             console.log(`Deleted old image: ${oldImagePath}`);
+        //         }
+        //     }
+
+        //     updateData.mainImage = newMainImage;
+        // }
+
+        // // Handle proof image update
+        // if (req.files["proof"]) {
+        //     const newProof = req.files["proof"][0].filename;
+
+        //     // Delete old proof if exists
+        //     if (project.proof) {
+        //         const oldProofPath = path.join(uploadDir, project.proof);
+        //         if (fs.existsSync(oldProofPath)) {
+        //             fs.unlinkSync(oldProofPath);
+        //             console.log(`Deleted old proof: ${oldProofPath}`);
+        //         }
+        //     }
+
+        //     updateData.proof = newProof;
+        // }
+
+        if (req.files['mainImage']) {
+            const newMainImage = req.files['mainImage'][0].path; // Full path to uploaded image
+
+            // Delete old image from Cloudinary
             if (project.mainImage) {
-                const oldImagePath = path.join(uploadDir, project.mainImage);
-                if (fs.existsSync(oldImagePath)) {
-                    fs.unlinkSync(oldImagePath);
-                    console.log(`Deleted old image: ${oldImagePath}`);
-                }
+              const oldImagePublicId = getPublicIdFromUrl(project.mainImage);
+              if (oldImagePublicId) {
+                await cloudinary.uploader.destroy(oldImagePublicId, (error, result) => {
+                  if (error) {
+                    console.error('Error deleting old image from Cloudinary:', error);
+                  } else {
+                    console.log('Old image deleted from Cloudinary:', result);
+                  }
+                });
+              }
             }
 
-            updateData.mainImage = newMainImage;
-        }
+            // Upload new image to Cloudinary
+            const uploadedImage = await cloudinary.uploader.upload(newMainImage);
+            updateData.mainImage = uploadedImage.secure_url; // Save Cloudinary URL to database
+          }
 
-        // Handle proof image update
-        if (req.files["proof"]) {
-            const newProof = req.files["proof"][0].filename;
+          // Handle proof image update
+          if (req.files['proof']) {
+            const newProof = req.files['proof'][0].path; // Full path to uploaded proof file
 
-            // Delete old proof if exists
+            // Delete old proof from Cloudinary
             if (project.proof) {
-                const oldProofPath = path.join(uploadDir, project.proof);
-                if (fs.existsSync(oldProofPath)) {
-                    fs.unlinkSync(oldProofPath);
-                    console.log(`Deleted old proof: ${oldProofPath}`);
-                }
+              const oldProofPublicId = getPublicIdFromUrl(project.proof);
+              if (oldProofPublicId) {
+                await cloudinary.uploader.destroy(oldProofPublicId, { resource_type: 'raw' }, (error, result) => {
+                  if (error) {
+                    console.error('Error deleting old proof from Cloudinary:', error);
+                  } else {
+                    console.log('Old proof deleted from Cloudinary:', result);
+                  }
+                });
+              }
             }
 
-            updateData.proof = newProof;
-        }
+            // Upload new proof to Cloudinary
+            const uploadedProof = await cloudinary.uploader.upload(newProof, { resource_type: 'raw' });
+            updateData.proof = uploadedProof.secure_url; // Save Cloudinary URL to database
+          }
+
 
         // Update project in database
         const updatedProject = await Project.findByIdAndUpdate(id, updateData, { new: true });
