@@ -3,7 +3,15 @@ const Project = require('../models/project');
 const fs = require('fs');
 const path = require('path');
 const cloudinary = require('../config/cloudinaryConfig');
+const Cloudinary = require('cloudinary').v2;
 
+
+
+function getPublicIdFromUrl(url) {
+  const parts = url.split('/');
+  const publicId = parts.slice(7).join('/').split('.')[0];
+  return publicId;
+}
 
 exports.addCategory = async (req, res) => {
     try {
@@ -13,20 +21,40 @@ exports.addCategory = async (req, res) => {
             return res.status(400).json({ message: "All fields are required!." });
         }
 
-        // const imageUrl = `${req.files.image[0].filename}`;
-        // const proofUrl = `${req.files.proof[0].filename}`;
+        // // const imageUrl = `${req.files.image[0].filename}`;
+        // // const proofUrl = `${req.files.proof[0].filename}`;
 
-        const uploadedImage = await cloudinary.uploader.upload(req.files.image[0].path, {
-            folder: "projects", // Optional: Organize files in a folder
-          });
+        // const uploadedImage = await cloudinary.uploader.upload(req.files.image[0].path, {
+        //     folder: "projects", // Optional: Organize files in a folder
+        //   });
 
-          // Upload proof to Cloudinary
-          const uploadedProof = await cloudinary.uploader.upload(req.files.proof[0].path, {
-            folder: "projects", // Optional: Organize files in a folder
-            resource_type: "raw", // Use raw for files like PDFs
-          });
+        //   // Upload proof to Cloudinary
+        //   const uploadedProof = await cloudinary.uploader.upload(req.files.proof[0].path, {
+        //     folder: "projects", // Optional: Organize files in a folder
+        //     resource_type: "raw", // Use raw for files like PDFs
+        //   });
 
-        const project = new Project({ title, description, mainImage: uploadedImage, proof: uploadedProof });
+
+              let mainImageUrl = null;
+              let uploadedProof = null;
+             if (req.files.image) {
+                const mainImage = req.files.image[0];
+                const mainImageUpload = await cloudinary.uploader.upload(mainImage.path, {
+                  folder: "projects",
+                });
+                mainImageUrl = mainImageUpload.secure_url;
+              }
+
+              if (req.files.proof) {
+                const secondImage = req.files.proof[0];
+                const secondImageUpload = await cloudinary.uploader.upload(secondImage.path, {
+                  folder: "projects",
+                  resource_type: "raw",
+                });
+                uploadedProof = secondImageUpload.secure_url;
+              }
+
+        const project = new Project({ title, description, mainImage: mainImageUrl, proof: uploadedProof });
         await project.save();
 
         res.status(201).json({ data: project });
@@ -51,55 +79,55 @@ exports.getProjects = async (req, res) => {
 
 
 exports.deleteProject = async (req, res) => {
-    try {
-        const id = req.params.id;
+  try {
+      const id = req.params.id;
 
-        // Simulated project retrieval from DB (Replace with actual DB call)
-        if (!id) {
-            return res.status(404).json({ message: "ProjectId not found" });
-        }
+      // Validate ID
+      if (!id) {
+          return res.status(404).json({ message: "Project ID not provided" });
+      }
 
-        const projects = await Project.findById(id);
+      const project = await Project.findById(id);
+      if (!project) {
+          return res.status(404).json({ message: "Project not found" });
+      }
 
-        if (!projects) {
-            return res.status(404).json({ message: "Project not found" });
-        }
+      function getPublicId(url) {
+          if (!url) return null;
+          const regex = /\/upload\/(?:v\d+\/)?([^/.]+)(?:\.\w+)?$/;
+          const match = url.match(regex);
+          return match ? match[1] : null;
+      }
 
-        // Remove images from the server
-        const mainImagePath = path.join(__dirname, '..', "uploads", projects.mainImage);
-        const proofPath = path.join(__dirname, "..", "uploads", projects.proof);
-        console.log(mainImagePath);
+      const mainImagePublicId = getPublicId(project.mainImage);
+      const proofPublicId = getPublicId(project.proof);
 
-        // [mainImagePath, proofPath].forEach((file) => {
-        //     if (file) {
-        //         if (fs.existsSync(file)) {
-        //             fs.unlinkSync(file);
-        //         }
-        //     }
-        // });
-        function extractPublicId(url) {
-            const parts = url.split("/");
-            const fileName = parts[parts.length - 1].split(".")[0];
-            return `projects/${fileName}`; // Assuming the file is in the "projects" folder
+      const deleteOperations = [mainImagePublicId, proofPublicId]
+          .filter(Boolean)
+          .map((publicId) => cloudinary.uploader.destroy(publicId, { resource_type: "image" }));
+
+      await Promise.all(deleteOperations);
+
+      function deleteLocalFile(filePath) {
+          if (fs.existsSync(filePath)) {
+              fs.unlinkSync(filePath);
+              console.log(`Deleted local file: ${filePath}`);
           }
+      }
 
-          const mainImagePublicId = extractPublicId(project.mainImage);
-          const proofPublicId = extractPublicId(project.proof);
+      const mainImagePath = path.join(__dirname, "..", "uploads", project.mainImage);
+      const proofPath = path.join(__dirname, "..", "uploads", project.proof);
 
-        const deleteOperations = [mainImagePublicId, proofPublicId].map((publicId) => {
-            if (publicId) {
-              return cloudinary.uploader.destroy(publicId, { resource_type: "auto" });
-            }
-          });
+      deleteLocalFile(mainImagePath);
+      deleteLocalFile(proofPath);
 
-          await Promise.all(deleteOperations);
+      await project.deleteOne();
 
-        await projects.deleteOne();
-        res.status(200).json({ message: "Project deleted successfully" });
-    } catch (error) {
-        console.error("Error:", error);
-        res.status(500).json({ message: "Internal server error" });
-    }
+      res.status(200).json({ message: "Project deleted successfully" });
+  } catch (error) {
+      console.error("Error deleting project:", error);
+      res.status(500).json({ message: "Internal server error" });
+  }
 };
 
 
@@ -160,12 +188,19 @@ exports.editProject = async (req, res) => {
         //     updateData.proof = newProof;
         // }
 
+
+        function getPublicId(url) {
+          const regex = /upload\/(?:v\d+\/)?(.+)\.\w+$/;  // Regex to extract public ID
+          const match = url.match(regex);
+          return match ? match[1] : null;
+      }
+
         if (req.files['mainImage']) {
             const newMainImage = req.files['mainImage'][0].path; // Full path to uploaded image
 
             // Delete old image from Cloudinary
             if (project.mainImage) {
-              const oldImagePublicId = getPublicIdFromUrl(project.mainImage);
+              const oldImagePublicId = getPublicId(project.mainImage);
               if (oldImagePublicId) {
                 await cloudinary.uploader.destroy(oldImagePublicId, (error, result) => {
                   if (error) {
@@ -182,13 +217,17 @@ exports.editProject = async (req, res) => {
             updateData.mainImage = uploadedImage.secure_url; // Save Cloudinary URL to database
           }
 
+
           // Handle proof image update
           if (req.files['proof']) {
-            const newProof = req.files['proof'][0].path; // Full path to uploaded proof file
+            const newProof = req.files['proof'][0]; // Full path to uploaded proof file
 
             // Delete old proof from Cloudinary
             if (project.proof) {
-              const oldProofPublicId = getPublicIdFromUrl(project.proof);
+
+              const oldProofPublicId = getPublicId(project.proof);
+              console.log(oldProofPublicId,'oldproofid');
+
               if (oldProofPublicId) {
                 await cloudinary.uploader.destroy(oldProofPublicId, { resource_type: 'raw' }, (error, result) => {
                   if (error) {
