@@ -11,13 +11,13 @@ async function fetchAndRenderProjects() {
                 <div class="col-xl-4 col-lg-6 col-md-6">
                     <div class="popular-program-box-items box-shadow mt-0">
                         <div class="thumb">
-                            <img src="/uploads/${project.mainImage}" alt="${project.title}">
+                            <img src="${project.mainImage}" alt="${project.title}">
                         </div>
                         <div class="content">
                             <h3><a href="program-details.html?id=${project._id}">${project.title}</a></h3>
                             <p>${project.description}</p>
                             <a href="#" class="theme-btn enroll-btn" 
-                                data-proof="/uploads/${project.proof}" 
+                                data-proof="${project.proof}" 
                                 onclick="showProofModal(event)">View</a>
                         </div>
                     </div>

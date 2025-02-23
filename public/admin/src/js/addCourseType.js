@@ -31,6 +31,8 @@ document.getElementById('registerAdminButton').addEventListener('click', async f
       return;
     }
     try {
+      const button = document.getElementById('registerAdminButton')
+      button.disabled = true;
       const response = await fetch('/api/course/all-type', {
         method: 'POST',
         headers: {
@@ -54,9 +56,11 @@ document.getElementById('registerAdminButton').addEventListener('click', async f
       } else {
         alert('Error registering admin: ' + result.message);
       }
+      button.disabled = false;
     } catch (error) {
       console.error('Error:', error);
       alert('Failed to register admin');
+      button.disabled = false;
     }
   });
 

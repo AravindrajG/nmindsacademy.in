@@ -101,7 +101,7 @@ fetchCourses();
                       <div class="courses-card-main-items mb-4">
                           <div class="courses-card-items">
                               <div class="courses-image">
-                                  <img src="/uploads/${course.image}" alt="Course Image" style="height: 250px !important;">
+                                  <img src="${course.image}" alt="Course Image" style="height: 250px !important;">
                                   <div class="arrow-items">
                                       <div class="GlidingArrow">
                                           <img src="assets/img/courses/a1.png" alt="arrow">

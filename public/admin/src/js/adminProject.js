@@ -90,12 +90,12 @@ async function fetchProjects() {
                     <td>${admin?.title}</td>
                     <td>${admin?.proof}</td>
                     <td> 
-                    <img src="/uploads/${admin?.mainImage}" alt="img" style="width: 50px; height: 50px; object-fit: cover;">
+                    <img src="${admin?.mainImage}" alt="img" style="width: 50px; height: 50px; object-fit: cover;">
                     </td>
                     <td>
                         ${admin?.proof.endsWith('.pdf')
-                            ? `<a href="/uploads/${admin.proof}" target="_blank">View pdf</a>`
-                            : `<img src="/uploads/${admin.proof}" alt="proof image" style="width: 50px; height: 50px; object-fit: cover; cursor: pointer;" onclick="openImageModal('/uploads/${admin.proof}')">`
+                            ? `<a href="${admin.proof}" target="_blank">View pdf</a>`
+                            : `<img src="${admin.proof}" alt="proof image" style="width: 50px; height: 50px; object-fit: cover; cursor: pointer;" onclick="openImageModal('/uploads/${admin.proof}')">`
                         }
                     </td>
 

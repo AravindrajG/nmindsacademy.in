@@ -47,6 +47,8 @@ document.getElementById('saveBlog').addEventListener('click', async (e) => {
     }
 
     try {
+        const button = document.getElementById('saveBlog');
+        button.disabled = true;
         const response = await fetch('/api/blogs/submit', {
             method: 'POST',
             body: formData,
@@ -63,7 +65,9 @@ document.getElementById('saveBlog').addEventListener('click', async (e) => {
             const error = await response.json();
             alert(`Error: ${error.message}`);
         }
+        button.disabled = false;
     } catch (err) {
+        button.disabled = false;
         console.error('Error submitting the blog form:', err);
         alert('An error occurred while submitting the blog post.');
     }
